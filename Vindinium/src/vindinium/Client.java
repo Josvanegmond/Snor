@@ -1,12 +1,12 @@
 package vindinium;
 
 import java.util.HashMap;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import snorbot.SnorBot;
 
 /**
  * Vindinium client.
@@ -81,7 +81,7 @@ public final class Client {
 
         System.out.println("Playing at: " + state.viewUrl);
 
-        final Bot bot = new RandomBot(); // Remplace by other Bot
+        final Bot bot = new SnorBot(); // Remplace by other Bot
         final HashMap<String,String> ps = new HashMap<String,String>(1);
         ps.put("key", key);
 
