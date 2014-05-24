@@ -47,7 +47,15 @@ public class SnorBot implements Bot
 
 		if( findRichHero( 10 ) == false )
 		{
-			moveRandom();
+			if( attemptMine() == false )
+			{
+				moveRandom();
+			}
+		}
+		
+		else
+		{
+			killHero( hero );
 		}
 		
 		return direction;
@@ -59,7 +67,6 @@ public class SnorBot implements Bot
 		{
 			if( hero != this.hero && hero.gold > gold )
 			{
-				killHero( hero );
 				return true; //eeew
 			}
 		}
@@ -82,11 +89,13 @@ public class SnorBot implements Bot
 		//auto kills when next to player
 			
 		direction = intToDir( (int)(Math.random() * 4) );
+		System.out.println( "Moving to rich bastard" );
 	}
 	
 	private void moveRandom()
 	{
 		direction = intToDir( (int)(Math.random() * 4) );
+		System.out.println( "Randomly wander around" );
 	}
 	
 	private boolean attemptMine()
@@ -94,13 +103,13 @@ public class SnorBot implements Bot
 		boolean canMine = false;
 		List<Tile> neighbourTiles = getNeighbourTiles( this.position.x, this.position.y );
 
-		System.out.println(neighbourTiles.toString());
 		for( int i = 0; i < 4 && canMine == false; i++ )
 		{
 			Tile tile = neighbourTiles.get( i );
 			if( tile == Tile.FREE_MINE )
 			{
 				canMine = true;
+				System.out.println( "Can mine! Mine is in the " + intToDir(i).toString() );
 				direction = intToDir( i );
 			}
 		}
@@ -115,10 +124,10 @@ public class SnorBot implements Bot
 		
 		List<Tile> tiles = new ArrayList<Tile>();
 		
-		tiles.add( ( this.position.y + 1 < yMax ) ? this.tileMatrix[ this.position.x ][ this.position.y + 1 ] : Tile.WALL );
-		tiles.add( ( this.position.x + 1 < xMax ) ? this.tileMatrix[ this.position.x + 1 ][ this.position.y ] : Tile.WALL );
-		tiles.add( ( this.position.y - 1 >= 0 ) ? this.tileMatrix[ this.position.x ][ this.position.y + 1 ] : Tile.WALL );
-		tiles.add( ( this.position.x - 1 >= 0 ) ? this.tileMatrix[ this.position.x - 1 ][ this.position.y ] : Tile.WALL );
+		tiles.add( ( this.position.y - 1 >= 0 ) ? this.tileMatrix[ this.position.y - 1 ][ this.position.x ] : Tile.WALL );
+		tiles.add( ( this.position.x + 1 <= xMax ) ? this.tileMatrix[ this.position.y ][ this.position.x + 1 ] : Tile.WALL );
+		tiles.add( ( this.position.y + 1 < yMax ) ? this.tileMatrix[ this.position.y + 1 ][ this.position.x ] : Tile.WALL );
+		tiles.add( ( this.position.x - 1 >= 0 ) ? this.tileMatrix[ this.position.y ][ this.position.x - 1 ] : Tile.WALL );
 		
 		return tiles;
 	};
