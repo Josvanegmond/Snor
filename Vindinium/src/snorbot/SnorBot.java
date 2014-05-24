@@ -31,34 +31,40 @@ public class SnorBot implements Bot
 	{
 		// *** BATTLEPLAN ***
 		
-		//wait for enemies to mine gold
-		//heal
+		//wait for enemies to mine gold (meanwhile, look for free mines)
+		//heal (find the beer bar closest to enemy on the route)
 		//move in on the kill
 		//steal all the gold
 		//win
 		
 		this.direction = Direction.STAY;
 		this.hero = state.hero();
-		this.position.x = this.hero.position.left;
-		this.position.y = this.hero.position.right;
+		this.position.x = this.hero.position.right;
+		this.position.y = this.hero.position.left;
 		
-		heroList = state.game.heroes;
-		tileMatrix = state.game.board.tiles;
+		this.heroList = state.game.heroes;
+		this.tileMatrix = state.game.board.tiles;
 
-		if( findRichHero( 10 ) == false )
+		//see if there are free mines
+		if( attemptMine() == false )
 		{
-			if( attemptMine() == false )
+			//if not, find rich heroes
+			if( findRichHero( 10 ) == false )
 			{
+				//no rich heroes, move randomly
 				moveRandom();
 			}
+			
+			//rich hero found!
+			else
+			{
+				//kill the hero
+				killHero( this.hero );
+			}
 		}
-		
-		else
-		{
-			killHero( hero );
-		}
-		
-		return direction;
+	
+		System.out.println( " - pos[" + this.position.x + "," + this.position.y + "]" );
+		return this.direction;
 	}
 	
 	private boolean findRichHero( int gold )
@@ -89,27 +95,27 @@ public class SnorBot implements Bot
 		//auto kills when next to player
 			
 		direction = intToDir( (int)(Math.random() * 4) );
-		System.out.println( "Moving to rich bastard" );
+		System.out.print( "Moving to rich bastard" );
 	}
 	
 	private void moveRandom()
 	{
 		direction = intToDir( (int)(Math.random() * 4) );
-		System.out.println( "Randomly wander around" );
+		System.out.print( "Randomly wander around" );
 	}
 	
 	private boolean attemptMine()
 	{
 		boolean canMine = false;
-		List<Tile> neighbourTiles = getNeighbourTiles( this.position.x, this.position.y );
+		Tile[] neighbourTiles = getNeighbourTiles( this.position.x, this.position.y );
 
 		for( int i = 0; i < 4 && canMine == false; i++ )
 		{
-			Tile tile = neighbourTiles.get( i );
+			Tile tile = neighbourTiles[i];
 			if( tile == Tile.FREE_MINE )
 			{
 				canMine = true;
-				System.out.println( "Can mine! Mine is in the " + intToDir(i).toString() );
+				System.out.print( "Can mine! Mine is in the " + intToDir(i).toString() );
 				direction = intToDir( i );
 			}
 		}
@@ -117,17 +123,17 @@ public class SnorBot implements Bot
 		return canMine;
 	}
 	
-	private List<Tile> getNeighbourTiles( int x, int y )
+	private Tile[] getNeighbourTiles( int x, int y )
 	{ 
-		int yMax = tileMatrix[0].length;
-		int xMax = tileMatrix.length;
+		int xMax = tileMatrix[0].length;
+		int yMax = tileMatrix.length;
 		
-		List<Tile> tiles = new ArrayList<Tile>();
+		Tile[] tiles = new Tile[4];
 		
-		tiles.add( ( this.position.y - 1 >= 0 ) ? this.tileMatrix[ this.position.y - 1 ][ this.position.x ] : Tile.WALL );
-		tiles.add( ( this.position.x + 1 <= xMax ) ? this.tileMatrix[ this.position.y ][ this.position.x + 1 ] : Tile.WALL );
-		tiles.add( ( this.position.y + 1 < yMax ) ? this.tileMatrix[ this.position.y + 1 ][ this.position.x ] : Tile.WALL );
-		tiles.add( ( this.position.x - 1 >= 0 ) ? this.tileMatrix[ this.position.y ][ this.position.x - 1 ] : Tile.WALL );
+		tiles[0] = ( y - 1 >= 0 ) ? this.tileMatrix[ y - 1 ][ x ] : Tile.WALL;		//NORTH
+		tiles[1] = ( x + 1 < xMax ) ? this.tileMatrix[ y ][ x + 1 ] : Tile.WALL;	//EAST
+		tiles[2] = ( y + 1 < yMax ) ? this.tileMatrix[ y + 1 ][ x ] : Tile.WALL;	//SOUTH
+		tiles[3] = ( x - 1 >= 0 ) ? this.tileMatrix[ y ][ x - 1 ] : Tile.WALL;		//WEST
 		
 		return tiles;
 	};
