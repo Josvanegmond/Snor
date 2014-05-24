@@ -20,6 +20,9 @@ public final class Client {
      * @param args args[2] Number of games to play (unused for now)
      * @param args args[3] HTTP URL of Vindinium server
      */
+	
+	//Snor example: training o3yu8li7 1 http://vindinium.org
+	
     public static void main(final String[] args) {
         final int numberOfGamesToPlay = Integer.parseInt(args[2]);
 
