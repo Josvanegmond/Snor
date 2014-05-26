@@ -181,11 +181,27 @@ public class PathMap
 		{
 			if( tileInfo.getDistance() <= range && tileInfo.getDistance() > 0 )
 			{
-				sitesInRange.add( tileInfo );
+				int orderedIndex = 0;
+				
+				//sort by distance
+				for( TileInfo checkInfo : sitesInRange )
+				{
+					int checkedIndex = sitesInRange.indexOf( checkInfo );
+					if( tileInfo.getDistance() > checkInfo.getDistance() && orderedIndex <= checkedIndex )
+					{
+						orderedIndex = checkedIndex + 1;
+					}
+				}
+				
+				sitesInRange.add( orderedIndex, tileInfo );
 			}
 		}
 		
 		System.out.print( "Found " + sitesInRange.size() + " " + type.name() );
+		for( TileInfo info : sitesInRange )
+		{
+			System.out.print( " " + info.getDistance() );
+		}
 		
 		System.out.println();
 		

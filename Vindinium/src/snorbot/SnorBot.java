@@ -48,7 +48,7 @@ public class SnorBot implements Bot
 		this.pathMap = new PathMap( state, this.position.x, this.position.y );
 
 		//get all interesting sites
-		List<TileInfo> minesInRange = this.pathMap.getSitesInRange( TileType.FREE_MINE, 3 );	//mines in vicinity
+		List<TileInfo> minesInRange = this.pathMap.getSitesInRange( TileType.FREE_MINE, 20 );	//mines in vicinity
 		List<TileInfo> pubsInRange = this.pathMap.getSitesInRange( TileType.TAVERN, 100-this.hero.life );		//pubs in vicinity
 
 		//visit those sites
