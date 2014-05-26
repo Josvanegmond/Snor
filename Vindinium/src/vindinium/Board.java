@@ -115,9 +115,12 @@ public final class Board {
          * Free mine (not owned)
          */
         public static final Tile FREE_MINE = new Tile("$-");
+        public static final Tile TAKEN_MINE = new Tile("$0");
 
         public static final Tile TAVERN = new Tile("[]");
         public static final Tile WALL = new Tile("##");
+
+        public static final Tile HERO = new Tile("@0");
 
         // --- Properties ---
 
@@ -186,7 +189,10 @@ public final class Board {
             final Tile other = (Tile) o;
 
             return ((this.repr == null && other.repr == null) ||
-                    (this.repr.equals(other.repr)));
+                    (this.repr.equals(other.repr)) ||
+                    (this.repr.matches("\\$[0-9]") && other.repr.matches("\\$[0-9]")) ||
+                    (this.repr.matches("@[0-9]") && other.repr.matches("@[0-9]"))
+            );
 
         } // end of equals
 

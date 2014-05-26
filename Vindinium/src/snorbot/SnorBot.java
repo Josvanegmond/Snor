@@ -35,11 +35,9 @@ public class SnorBot implements Bot
 	{
 		// *** BATTLEPLAN ***
 		
-		//wait for enemies to mine gold (meanwhile, look for free mines)
-		//heal (find the beer bar closest to enemy on the route)
-		//move in on the kill
-		//steal all the gold
-		//win
+		//if a hero has plenty money, kill him
+		//otherwise, if we have plenty health, mine all mines close by
+		//otherwise, find a pub and get drunk
 		
 		this.direction = Direction.STAY;
 		this.hero = state.hero();
@@ -49,19 +47,32 @@ public class SnorBot implements Bot
 
 		//get all interesting sites
 		List<TileInfo> minesInRange = this.pathMap.getSitesInRange( TileType.FREE_MINE, 20 );	//mines in vicinity
-		List<TileInfo> pubsInRange = this.pathMap.getSitesInRange( TileType.TAVERN, 100-this.hero.life );		//pubs in vicinity
+		List<TileInfo> pubsInRange = this.pathMap.getSitesInRange( TileType.TAVERN, (int)((100-this.hero.life)/10) );		//pubs in vicinity
 
-		//visit those sites
-		if( minesInRange.size() != 0 ) 		{ this.direction = minesInRange.get(0).getShortestPath().lastElement(); }
-		else if( pubsInRange.size() != 0 ) 	{ this.direction = pubsInRange.get(0).getShortestPath().lastElement(); }
+		//first visit pubs (apparently we need it)
+		if( pubsInRange.size() != 0 )
+		{
+			System.out.print( "Searching closest pubs... " + pubsInRange.get(0).getX() + "," + pubsInRange.get(0).getY() );
+			this.direction = this.pathMap.getDirectionTo( pubsInRange.get(0) );
+		}
+		
+		//then visit the mines
+		else if( minesInRange.size() != 0 )
+		{
+			System.out.print( "Searching closest mine... " + minesInRange.get(0).getX() + "," + minesInRange.get(0).getY() );
+			this.direction = this.pathMap.getDirectionTo( minesInRange.get(0) );
+		}
+		
+		//else if( pubsInRange.size() != 0 ) 	{ this.direction = pubsInRange.get(0).getShortestPath().lastElement(); }
 		
 		//if not, find rich heroes and kill them
 		
 		//no rich heroes, move randomly
-		else { this.direction = intToDir( (int)(Math.random() * 4) ); }
+		//else { this.direction = intToDir( (int)(Math.random() * 4) ); }
 		
 		VisualPathMap.getInstance( pathMap );
 		
+		System.out.println("Going " + this.direction.name() );
 		return this.direction;
 	}
 }

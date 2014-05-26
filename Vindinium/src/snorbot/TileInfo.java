@@ -61,7 +61,6 @@ public class TileInfo
 	
 	public Stack<Direction> getShortestPath()
 	{
-		System.out.println("shortestpath ["+this.getX()+","+this.getY()+"]"+ ": " + this.shortestPath.size() );
 		return this.shortestPath;
 	}
 	

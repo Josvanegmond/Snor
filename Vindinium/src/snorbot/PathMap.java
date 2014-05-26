@@ -16,8 +16,10 @@ public class PathMap
 	{
 		AIR,
 		FREE_MINE,
+		TAKEN_MINE,
 		TAVERN,
-		WALL
+		WALL,
+		HERO
 	};
 	
 	private State state;
@@ -78,7 +80,12 @@ public class PathMap
 	
 	public Direction getDirectionTo( int x, int y )
 	{
-		return Direction.STAY;
+		return this.pathMap[y][x].getShortestPath().firstElement();
+	}
+
+	public Direction getDirectionTo(TileInfo tileInfo)
+	{
+		return getDirectionTo( tileInfo.getX(), tileInfo.getY() );
 	}
 	
 	public void updatePathMap()
@@ -100,8 +107,10 @@ public class PathMap
 			for( int x = 0; x < this.width; x++ )
 			{
 				Tile tile = this.tileMap[ y ][ x ];
-				if( tile == Tile.FREE_MINE ) { this.siteList.put( TileType.FREE_MINE, this.pathMap[ y ][ x ] ); }
-				if( tile == Tile.TAVERN ) { this.siteList.put( TileType.TAVERN, this.pathMap[ y ][ x ] ); }
+				if( tile.equals( Tile.FREE_MINE ) ) { this.siteList.put( TileType.FREE_MINE, this.pathMap[ y ][ x ] ); }
+				if( tile.equals( Tile.TAVERN ) ) { this.siteList.put( TileType.TAVERN, this.pathMap[ y ][ x ] ); }
+				if( tile.equals( Tile.HERO ) ) { this.siteList.put( TileType.HERO, this.pathMap[ y ][ x ] ); }
+				if( tile.equals( Tile.TAKEN_MINE ) ) { this.siteList.put( TileType.TAKEN_MINE, this.pathMap[ y ][ x ] ); }
 			}
 		}
 	}
@@ -119,36 +128,40 @@ public class PathMap
 
 			//if this position is a mine, wall or a pub, we can't pass through, but otherwise, we continue pathfinding
 			Tile currentTile = this.pathMap[ centerY ][ centerX ].getTile();
-			if( currentTile != Tile.TAVERN && currentTile != Tile.FREE_MINE  && currentTile != Tile.WALL  )
+			if( distance == 0 || (
+					currentTile.equals( Tile.TAVERN ) == false && currentTile.equals( Tile.FREE_MINE ) == false &&
+					currentTile.equals( Tile.WALL ) == false && currentTile.equals( Tile.TAKEN_MINE ) == false &&
+					currentTile.equals( Tile.HERO ) == false
+				))
 			{
 				//recursive call for all neighbouring tiles, increase distance and clone navigation stack per direction
 				Tile[] tiles = getNeighbourTiles( centerX, centerY );
 				
-				if( tiles[0] != Tile.WALL )
+				if( tiles[0].equals( Tile.WALL ) == false )
 				{ 
 					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
-					cloneCameFromDir.push( Direction.SOUTH );
+					cloneCameFromDir.push( Direction.NORTH );
 					updatePathMap( centerX, centerY-1, distance+1, cloneCameFromDir );
 				}
 				
-				if( tiles[1] != Tile.WALL )
-				{
-					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
-					cloneCameFromDir.push( Direction.WEST );
-					updatePathMap( centerX+1, centerY, distance+1, cloneCameFromDir );
-				}
-				
-				if( tiles[2] != Tile.WALL )
-				{
-					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
-					cloneCameFromDir.push( Direction.NORTH );
-					updatePathMap( centerX, centerY+1, distance+1, cloneCameFromDir );
-				}
-				
-				if( tiles[3] != Tile.WALL )
+				if( tiles[1].equals( Tile.WALL ) == false )
 				{
 					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
 					cloneCameFromDir.push( Direction.EAST );
+					updatePathMap( centerX+1, centerY, distance+1, cloneCameFromDir );
+				}
+				
+				if( tiles[2].equals( Tile.WALL ) == false )
+				{
+					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+					cloneCameFromDir.push( Direction.SOUTH );
+					updatePathMap( centerX, centerY+1, distance+1, cloneCameFromDir );
+				}
+				
+				if( tiles[3].equals( Tile.WALL ) == false )
+				{
+					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+					cloneCameFromDir.push( Direction.WEST );
 					updatePathMap( centerX-1, centerY, distance+1, cloneCameFromDir );
 				}
 			}
@@ -175,7 +188,6 @@ public class PathMap
 	{
 		List<TileInfo> sitesInRange = new ArrayList<TileInfo>();
 		List<TileInfo> sitesOfType = this.siteList.get( type );
-		System.out.print(" total sites:" + sitesOfType.size() +  " ");
 		
 		for( TileInfo tileInfo : sitesOfType )
 		{
@@ -196,14 +208,6 @@ public class PathMap
 				sitesInRange.add( orderedIndex, tileInfo );
 			}
 		}
-		
-		System.out.print( "Found " + sitesInRange.size() + " " + type.name() );
-		for( TileInfo info : sitesInRange )
-		{
-			System.out.print( " " + info.getDistance() );
-		}
-		
-		System.out.println();
 		
 		return sitesInRange;
 	}
