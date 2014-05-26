@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
+import snorbot.PathMap.TileType;
 import vindinium.Board.Tile;
 import vindinium.Bot;
 import vindinium.Direction;
@@ -14,6 +15,12 @@ import vindinium.State;
 
 public class SnorBot implements Bot
 {
+	public Direction intToDir( int dir )
+	{
+		Direction[] directions = { Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST };
+		return directions[dir];
+	}
+	
 	private PathMap pathMap;
 	
 	private List<Hero> heroList;
@@ -38,14 +45,37 @@ public class SnorBot implements Bot
 		this.hero = state.hero();
 		this.position = new Point( this.hero.position.right, this.hero.position.left ); //x and y are reversed, really
 		
-		this.pathMap = new PathMap( state.game.board.tiles, this.position.x, this.position.y );
+		if( this.pathMap == null )
+		{
+			this.pathMap = new PathMap( state.game.board.tiles, this.position.x, this.position.y );
+			
+			for( int i = 0; i < this.pathMap.getHeight(); i++ )
+			{
+				for( int j = 0; j < this.pathMap.getWidth(); j++ )
+				{
+					System.out.print( this.pathMap.getInfo( i, j ).getDistance() + "\t" );
+				}
+				System.out.println();
+			}
+		}
+		
+		else
+		{
+			//this.pathMap.updatePathMap();
+		}
 
-		//see if there are free mines in the direct vicinity
-		//if not, see if we need a drink
-		//if not, find rich heroes
+		//get all interesting sites
+		List<TileInfo> minesInRange = this.pathMap.getSitesInRange( TileType.FREE_MINE, 3 );	//mines in vicinity
+		List<TileInfo> pubsInRange = this.pathMap.getSitesInRange( TileType.TAVERN, 100-this.hero.life );		//pubs in vicinity
+
+		//visit those sites
+		if( minesInRange.size() != 0 ) 		{ this.direction = minesInRange.get(0).getShortestPath().lastElement(); }
+		else if( pubsInRange.size() != 0 ) 	{ this.direction = pubsInRange.get(0).getShortestPath().lastElement(); }
+		
+		//if not, find rich heroes and kill them
+		
 		//no rich heroes, move randomly
-		//rich hero found!
-		//kill the hero
+		else { this.direction = intToDir( (int)(Math.random() * 4) ); }
 		
 		return this.direction;
 	}
