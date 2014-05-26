@@ -9,7 +9,7 @@ import vindinium.Direction;
 public class TileInfo
 {
 	private Tile tile;
-	private int distance;
+	private int distance;	//should be the same as shortestPath.size(), right?
 	private Point position;
 	private Stack<Direction> shortestPath;
 	

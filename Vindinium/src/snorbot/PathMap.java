@@ -87,11 +87,33 @@ public class PathMap
 			if( tile == Tile.FREE_MINE ) { siteList.put( TileType.FREE_MINE, pathMap[ centerY ][ centerX ] ); }
 			if( tile == Tile.TAVERN ) { siteList.put( TileType.TAVERN, pathMap[ centerY ][ centerX ] ); }
 	
-			Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone(); 
-			if( tiles[0] != Tile.WALL ) { cloneCameFromDir.push( Direction.SOUTH ); updatePathMap( centerX, centerY-1, distance+1, cloneCameFromDir ); }
-			if( tiles[1] != Tile.WALL ) { cloneCameFromDir.push( Direction.WEST ); updatePathMap( centerX+1, centerY, distance+1, cloneCameFromDir ); }
-			if( tiles[2] != Tile.WALL ) { cloneCameFromDir.push( Direction.NORTH ); updatePathMap( centerX, centerY+1, distance+1, cloneCameFromDir ); }
-			if( tiles[3] != Tile.WALL ) { cloneCameFromDir.push( Direction.EAST ); updatePathMap( centerX-1, centerY, distance+1, cloneCameFromDir ); }
+			if( tiles[0] != Tile.WALL )
+			{ 
+				Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+				cloneCameFromDir.push( Direction.SOUTH );
+				updatePathMap( centerX, centerY-1, distance+1, cloneCameFromDir );
+			}
+			
+			if( tiles[1] != Tile.WALL )
+			{
+				Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+				cloneCameFromDir.push( Direction.WEST );
+				updatePathMap( centerX+1, centerY, distance+1, cloneCameFromDir );
+			}
+			
+			if( tiles[2] != Tile.WALL )
+			{
+				Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+				cloneCameFromDir.push( Direction.NORTH );
+				updatePathMap( centerX, centerY+1, distance+1, cloneCameFromDir );
+			}
+			
+			if( tiles[3] != Tile.WALL )
+			{
+				Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+				cloneCameFromDir.push( Direction.EAST );
+				updatePathMap( centerX-1, centerY, distance+1, cloneCameFromDir );
+			}
 		}
 	}
 	

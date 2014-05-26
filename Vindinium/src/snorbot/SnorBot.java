@@ -53,7 +53,7 @@ public class SnorBot implements Bot
 			{
 				for( int j = 0; j < this.pathMap.getWidth(); j++ )
 				{
-					System.out.print( this.pathMap.getInfo( i, j ).getDistance() + "\t" );
+					System.out.print( this.pathMap.getInfo( i, j ).getShortestPath().size() + "\t" );
 				}
 				System.out.println();
 			}
