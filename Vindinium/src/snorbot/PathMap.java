@@ -36,6 +36,7 @@ public class PathMap
 	
 	public PathMap( PathMap original )
 	{
+		this.state = original.state;
 		this.centerX = original.centerX;
 		this.centerY = original.centerY;
 		this.width = original.width;
@@ -57,6 +58,7 @@ public class PathMap
 	
 	public PathMap( State state, int x, int y )
 	{
+		this.state = state;
 		this.centerX = x;
 		this.centerY = y;
 		this.tileMap = state.game.board.tiles;
@@ -80,7 +82,13 @@ public class PathMap
 	
 	public Direction getDirectionTo( int x, int y )
 	{
-		return this.pathMap[y][x].getShortestPath().firstElement();
+		Direction direction = Direction.STAY;
+		Stack<Direction> shortestPath = this.pathMap[y][x].getShortestPath();
+		if( shortestPath.size() > 0 )
+		{
+			direction = shortestPath.firstElement();
+		}
+		return direction;
 	}
 
 	public Direction getDirectionTo(TileInfo tileInfo)
@@ -191,7 +199,7 @@ public class PathMap
 		
 		for( TileInfo tileInfo : sitesOfType )
 		{
-			if( tileInfo.getDistance() <= range && tileInfo.getDistance() > 0 )
+			if( tileInfo.getTile().getHeroId() != state.heroId && tileInfo.getDistance() <= range && tileInfo.getDistance() > 0 )
 			{
 				int orderedIndex = 0;
 				

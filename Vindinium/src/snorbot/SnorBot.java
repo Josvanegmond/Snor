@@ -45,34 +45,58 @@ public class SnorBot implements Bot
 		
 		this.pathMap = new PathMap( state, this.position.x, this.position.y );
 
+		//find the richest hero
+		Hero richestHero = state.game.heroes.get(0);
+		if( richestHero == this.hero ) { richestHero = state.game.heroes.get(1); } //just grab another hero if we are #0
+		
+		for( Hero hero : state.game.heroes )
+		{
+			if( hero != this.hero && hero.gold > richestHero.gold )
+			{
+				richestHero = hero;
+			}
+		}
+		
 		//get all interesting sites
 		List<TileInfo> minesInRange = this.pathMap.getSitesInRange( TileType.FREE_MINE, 20 );	//mines in vicinity
-		List<TileInfo> pubsInRange = this.pathMap.getSitesInRange( TileType.TAVERN, (int)((100-this.hero.life)/10) );		//pubs in vicinity
-
+		List<TileInfo> takenMinesInRange = this.pathMap.getSitesInRange( TileType.TAKEN_MINE, (100-richestHero.life)/2 );	//mines in vicinity
+		List<TileInfo> pubsInRange = this.pathMap.getSitesInRange( TileType.TAVERN, (int)(Math.pow(100-this.hero.life,2)*state.game.board.size/5000) );		//pubs in vicinity
+		
 		//first visit pubs (apparently we need it)
 		if( pubsInRange.size() != 0 )
 		{
-			System.out.print( "Searching closest pubs... " + pubsInRange.get(0).getX() + "," + pubsInRange.get(0).getY() );
 			this.direction = this.pathMap.getDirectionTo( pubsInRange.get(0) );
 		}
 		
 		//then visit the mines
 		else if( minesInRange.size() != 0 )
 		{
-			System.out.print( "Searching closest mine... " + minesInRange.get(0).getX() + "," + minesInRange.get(0).getY() );
 			this.direction = this.pathMap.getDirectionTo( minesInRange.get(0) );
 		}
 		
-		//else if( pubsInRange.size() != 0 ) 	{ this.direction = pubsInRange.get(0).getShortestPath().lastElement(); }
+		//then visit taken mines
+		else if( takenMinesInRange.size() != 0 )
+		{
+			this.direction = this.pathMap.getDirectionTo( takenMinesInRange.get(0) );
+		}
 		
-		//if not, find rich heroes and kill them
+		//then hunt for players
+		else
+		{
+			//kill the richest hero! (but first full health)
+			if( this.hero.life > 85 )
+			{
+				this.direction = this.pathMap.getDirectionTo( richestHero.position.right, richestHero.position.left );
+			}
+			else
+			{
+				//run away!!!
+				this.direction = intToDir( (int)(Math.random()*4) );
+			}
+		}
 		
-		//no rich heroes, move randomly
-		//else { this.direction = intToDir( (int)(Math.random() * 4) ); }
+		//VisualPathMap.getInstance( pathMap );
 		
-		VisualPathMap.getInstance( pathMap );
-		
-		System.out.println("Going " + this.direction.name() );
 		return this.direction;
 	}
 }

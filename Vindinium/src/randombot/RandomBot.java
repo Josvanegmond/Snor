@@ -1,4 +1,4 @@
-package vindinium;
+package randombot;
 
 import java.util.Collections;
 import java.util.ArrayList;
@@ -6,6 +6,11 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import vindinium.Board;
+import vindinium.Bot;
+import vindinium.Direction;
+import vindinium.Hero;
+import vindinium.State;
 import vindinium.Board.Tile;
 
 /**

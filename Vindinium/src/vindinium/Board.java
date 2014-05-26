@@ -137,7 +137,7 @@ public final class Board {
         private Tile(final String representation) {
             this.repr = representation;
         } // end of <init>
-
+        
         /**
          * Returns tiles matching given |representation|.
          * @throws IllegalArgumentException if representation is not supported
@@ -171,6 +171,15 @@ public final class Board {
 
         } // end of valueOf
 
+
+        //returns hero number (if any, otherwise 0)
+        public int getHeroId()
+        {
+        	int id = 0;
+        	if( this.repr.matches("[@\\$][0-9]")) { id = Integer.parseInt( this.repr.charAt(1) + "" ); }
+        	return id;
+        }
+        
         // --- Object support ---
 
         /**
