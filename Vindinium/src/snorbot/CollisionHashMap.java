@@ -12,7 +12,7 @@ public class CollisionHashMap<K,V>
 		this.hashMap = new HashMap<K,ArrayList<V>>();
 	}
 	
-	public V put( K key, V value )
+	public ArrayList<V> put( K key, V value )
 	{
 		ArrayList<V> list = this.hashMap.get( key );
 		
@@ -23,7 +23,7 @@ public class CollisionHashMap<K,V>
 		}
 		
 		list.add( value );
-		return value;
+		return list;
 	}
 	
 	public ArrayList<V> get( K key )
@@ -32,5 +32,10 @@ public class CollisionHashMap<K,V>
 		if( list == null ) { list = new ArrayList<V>(); }
 		
 		return list;
+	}
+
+	public void clear()
+	{
+		this.hashMap.clear();
 	}
 }

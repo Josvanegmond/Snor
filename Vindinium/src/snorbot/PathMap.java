@@ -8,6 +8,7 @@ import java.util.Stack;
 import vindinium.Board.Tile;
 import vindinium.Direction;
 import vindinium.Hero;
+import vindinium.State;
 
 public class PathMap
 {
@@ -19,6 +20,7 @@ public class PathMap
 		WALL
 	};
 	
+	private State state;
 	private Tile[][] tileMap;
 	private TileInfo[][] pathMap;
 	private int centerX, centerY, width, height;
@@ -30,13 +32,34 @@ public class PathMap
 		return directions[i];
 	}
 	
-	public PathMap( Tile[][] tileMap, int x, int y )
+	public PathMap( PathMap original )
+	{
+		this.centerX = original.centerX;
+		this.centerY = original.centerY;
+		this.width = original.width;
+		this.height = original.height;
+		
+		for( int y = 0; y < this.height; y++ )
+		{
+			for( int x = 0; x < this.width; x++ )
+			{
+				this.tileMap[y][x] = original.tileMap[y][x];
+				this.pathMap[y][x] = original.pathMap[y][x].clone();
+			}
+		}
+		
+		this.siteList = original.siteList;
+		
+		updatePathMap();
+	}
+	
+	public PathMap( State state, int x, int y )
 	{
 		this.centerX = x;
 		this.centerY = y;
+		this.tileMap = state.game.board.tiles;
 		this.width = tileMap[0].length;
 		this.height = tileMap.length;
-		this.tileMap = tileMap;
 		this.pathMap = new TileInfo[ height ][ width ];
 		this.siteList = new CollisionHashMap< TileType, TileInfo >();
 		
@@ -45,7 +68,7 @@ public class PathMap
 	
 	public TileInfo getInfo( int x, int y )
 	{
-		return pathMap[x][y];
+		return this.pathMap[y][x];
 	}
 	
 	public CollisionHashMap<TileType, TileInfo> getSiteList()
@@ -60,67 +83,83 @@ public class PathMap
 	
 	public void updatePathMap()
 	{
-		for( int i = 0; i < pathMap.length; i++ )
+		this.siteList.clear();
+		
+		for( int y = 0; y < this.height; y++ )
 		{
-			for( int j = 0; j < pathMap[0].length; j++ )
+			for( int x = 0; x < this.width; x++ )
 			{
-				pathMap[i][j] = new TileInfo( tileMap[i][j], -1, i, j, new Stack<Direction>() );
+				this.pathMap[y][x] = new TileInfo( this.tileMap[y][x], -1, x, y, new Stack<Direction>() );
 			}
 		}
 		
-		updatePathMap( centerX, centerY, 0, new Stack<Direction>() );
+		updatePathMap( this.centerX, this.centerY, 0, new Stack<Direction>() );
+
+		for( int y = 0; y < this.height; y++ )
+		{
+			for( int x = 0; x < this.width; x++ )
+			{
+				Tile tile = this.tileMap[ y ][ x ];
+				if( tile == Tile.FREE_MINE ) { this.siteList.put( TileType.FREE_MINE, this.pathMap[ y ][ x ] ); }
+				if( tile == Tile.TAVERN ) { this.siteList.put( TileType.TAVERN, this.pathMap[ y ][ x ] ); }
+			}
+		}
 	}
 	
+	//updates the pathmap values based on the center position
 	private void updatePathMap( int centerX, int centerY, int distance, Stack<Direction> cameFromDir )
 	{
-		int checkDistance = pathMap[ centerY ][ centerX ].getDistance();
-		
+		//check if the distance we travelled is shorter than the distance registered for this position, if so, we found a shorter path!
+		int checkDistance = this.pathMap[ centerY ][ centerX ].getDistance();
 		if( checkDistance > distance || checkDistance == -1 )
 		{
-			pathMap[ centerY ][ centerX ].setShortestPath( cameFromDir );
-			pathMap[ centerY ][ centerX ].setDistance( distance );
-			
-			Tile[] tiles = getNeighbourTiles( centerX, centerY );
-			
-			Tile tile = tileMap[ centerY ][ centerX ];
+			//we register the minimum amount of steps to reach this position
+			this.pathMap[ centerY ][ centerX ].setShortestPath( cameFromDir );
+			this.pathMap[ centerY ][ centerX ].setDistance( distance );
 
-			if( tile == Tile.FREE_MINE ) { siteList.put( TileType.FREE_MINE, pathMap[ centerY ][ centerX ] ); }
-			if( tile == Tile.TAVERN ) { siteList.put( TileType.TAVERN, pathMap[ centerY ][ centerX ] ); }
-	
-			if( tiles[0] != Tile.WALL )
-			{ 
-				Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
-				cloneCameFromDir.push( Direction.SOUTH );
-				updatePathMap( centerX, centerY-1, distance+1, cloneCameFromDir );
-			}
-			
-			if( tiles[1] != Tile.WALL )
+			//if this position is a mine, wall or a pub, we can't pass through, but otherwise, we continue pathfinding
+			Tile currentTile = this.pathMap[ centerY ][ centerX ].getTile();
+			if( currentTile != Tile.TAVERN && currentTile != Tile.FREE_MINE  && currentTile != Tile.WALL  )
 			{
-				Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
-				cloneCameFromDir.push( Direction.WEST );
-				updatePathMap( centerX+1, centerY, distance+1, cloneCameFromDir );
-			}
-			
-			if( tiles[2] != Tile.WALL )
-			{
-				Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
-				cloneCameFromDir.push( Direction.NORTH );
-				updatePathMap( centerX, centerY+1, distance+1, cloneCameFromDir );
-			}
-			
-			if( tiles[3] != Tile.WALL )
-			{
-				Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
-				cloneCameFromDir.push( Direction.EAST );
-				updatePathMap( centerX-1, centerY, distance+1, cloneCameFromDir );
+				//recursive call for all neighbouring tiles, increase distance and clone navigation stack per direction
+				Tile[] tiles = getNeighbourTiles( centerX, centerY );
+				
+				if( tiles[0] != Tile.WALL )
+				{ 
+					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+					cloneCameFromDir.push( Direction.SOUTH );
+					updatePathMap( centerX, centerY-1, distance+1, cloneCameFromDir );
+				}
+				
+				if( tiles[1] != Tile.WALL )
+				{
+					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+					cloneCameFromDir.push( Direction.WEST );
+					updatePathMap( centerX+1, centerY, distance+1, cloneCameFromDir );
+				}
+				
+				if( tiles[2] != Tile.WALL )
+				{
+					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+					cloneCameFromDir.push( Direction.NORTH );
+					updatePathMap( centerX, centerY+1, distance+1, cloneCameFromDir );
+				}
+				
+				if( tiles[3] != Tile.WALL )
+				{
+					Stack<Direction> cloneCameFromDir = (Stack<Direction>)cameFromDir.clone();
+					cloneCameFromDir.push( Direction.EAST );
+					updatePathMap( centerX-1, centerY, distance+1, cloneCameFromDir );
+				}
 			}
 		}
 	}
 	
+	//retrieves neighbouring tiles, returns WALL when out of array bounds
 	private Tile[] getNeighbourTiles( int x, int y )
 	{ 
-		int xMax = tileMap[0].length;
-		int yMax = tileMap.length;
+		int xMax = this.width;
+		int yMax = this.height;
 		
 		Tile[] tiles = new Tile[4];
 		
@@ -136,16 +175,20 @@ public class PathMap
 	{
 		List<TileInfo> sitesInRange = new ArrayList<TileInfo>();
 		List<TileInfo> sitesOfType = this.siteList.get( type );
+		System.out.print(" total sites:" + sitesOfType.size() +  " ");
 		
 		for( TileInfo tileInfo : sitesOfType )
 		{
-			if( tileInfo.getDistance() <= range && tileInfo.getDistance() != -1 )
+			if( tileInfo.getDistance() <= range && tileInfo.getDistance() > 0 )
 			{
 				sitesInRange.add( tileInfo );
 			}
 		}
 		
-		System.out.println( "Found " + sitesInRange.size() + " " + type.name() );
+		System.out.print( "Found " + sitesInRange.size() + " " + type.name() );
+		
+		System.out.println();
+		
 		return sitesInRange;
 	}
 	
@@ -157,5 +200,22 @@ public class PathMap
 	public int getHeight()
 	{
 		return this.height;
+	}
+
+	public int getCenterX()
+	{
+		return this.centerX;
+	}
+	
+	public int getCenterY()
+	{
+		return this.centerY;
+	}
+	
+	@Override
+	public PathMap clone()
+	{
+		PathMap pathMap = new PathMap( this );
+		return pathMap;
 	}
 }

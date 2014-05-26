@@ -45,24 +45,7 @@ public class SnorBot implements Bot
 		this.hero = state.hero();
 		this.position = new Point( this.hero.position.right, this.hero.position.left ); //x and y are reversed, really
 		
-		if( this.pathMap == null )
-		{
-			this.pathMap = new PathMap( state.game.board.tiles, this.position.x, this.position.y );
-			
-			for( int i = 0; i < this.pathMap.getHeight(); i++ )
-			{
-				for( int j = 0; j < this.pathMap.getWidth(); j++ )
-				{
-					System.out.print( this.pathMap.getInfo( i, j ).getShortestPath().size() + "\t" );
-				}
-				System.out.println();
-			}
-		}
-		
-		else
-		{
-			//this.pathMap.updatePathMap();
-		}
+		this.pathMap = new PathMap( state, this.position.x, this.position.y );
 
 		//get all interesting sites
 		List<TileInfo> minesInRange = this.pathMap.getSitesInRange( TileType.FREE_MINE, 3 );	//mines in vicinity
@@ -76,6 +59,8 @@ public class SnorBot implements Bot
 		
 		//no rich heroes, move randomly
 		else { this.direction = intToDir( (int)(Math.random() * 4) ); }
+		
+		VisualPathMap.getInstance( pathMap );
 		
 		return this.direction;
 	}
